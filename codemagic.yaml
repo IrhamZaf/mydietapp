@@ -4,7 +4,7 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
-      app_store_connect: "Codemagic" # Match the key name saved in Codemagic Team Integrations
+      app_store_connect: "Codemagic"
     environment:
       ios_signing:
         distribution_type: app_store
@@ -13,11 +13,8 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Set up keychain & fetch signing files
+      - name: Set up code signing settings on Xcode project
         script: |
-          keychain initialize
-          app-store-connect fetch-signing-files "com.vinculotech.Tests-iOS" --type IOS_APP_STORE --create
-          app-store-connect add-certificates
           xcode-project use-profiles
       - name: Get Flutter packages
         script: |
