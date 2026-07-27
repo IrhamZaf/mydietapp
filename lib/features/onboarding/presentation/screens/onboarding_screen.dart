@@ -30,7 +30,7 @@ class OnboardingScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Row(
-                children: List.generate(4, (index) {
+                children: List.generate(state.totalSteps, (index) {
                   final isActive = index <= state.step;
                   return Expanded(
                     child: Container(
@@ -93,12 +93,12 @@ class OnboardingScreen extends ConsumerWidget {
                       onPressed: state.isLoading
                           ? null
                           : () async {
-                              if (state.step < 3) {
+                              if (state.step < state.lastFormStep) {
                                 controller.setStep(state.step + 1);
                               } else {
-                                final success = await controller.submitProfile();
+                                final success = await controller.submitProfileAndLoadPlan();
                                 if (success && context.mounted) {
-                                  Navigator.of(context).pushReplacementNamed('/dashboard');
+                                  Navigator.of(context).pushReplacementNamed('/plan-brief');
                                 }
                               }
                             },
@@ -108,7 +108,9 @@ class OnboardingScreen extends ConsumerWidget {
                               width: 22,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                             )
-                          : Text(state.step == 3 ? 'Complete Setup 🎉' : 'Next Step →'),
+                          : Text(state.step == state.lastFormStep
+                              ? 'Generate My Plan'
+                              : 'Next Step →'),
                     ),
                   ),
                 ],
@@ -121,6 +123,7 @@ class OnboardingScreen extends ConsumerWidget {
   }
 
   Widget _buildStepContent(BuildContext context, OnboardingState state, OnboardingController controller) {
+    final loseWeight = state.goalType == 'lose_weight';
     switch (state.step) {
       case 0:
         return _StepGenderAndAge(state: state, controller: controller);
@@ -129,6 +132,11 @@ class OnboardingScreen extends ConsumerWidget {
       case 2:
         return _StepActivityAndGoal(state: state, controller: controller);
       case 3:
+        if (loseWeight) {
+          return _StepWeeklyPace(state: state, controller: controller);
+        }
+        return _StepDietMode(state: state, controller: controller);
+      case 4:
         return _StepDietMode(state: state, controller: controller);
       default:
         return const SizedBox.shrink();
@@ -453,12 +461,79 @@ class _StepActivityAndGoal extends StatelessWidget {
           isSelected: state.activityLevel == 'very_active',
           onTap: () => controller.setActivityLevel('very_active'),
         ),
+        const SizedBox(height: 10),
+        _SelectOptionTile(
+          title: 'Extra Active',
+          subtitle: 'Athlete / physical job + daily training',
+          isSelected: state.activityLevel == 'extra_active',
+          onTap: () => controller.setActivityLevel('extra_active'),
+        ),
       ],
     );
   }
 }
 
-// STEP 4: Diet Mode (Normal vs Intermittent Fasting)
+// STEP: Weekly weight loss pace (lose_weight only)
+class _StepWeeklyPace extends StatelessWidget {
+  final OnboardingState state;
+  final OnboardingController controller;
+
+  const _StepWeeklyPace({required this.state, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final toLose = (state.weightKg - state.goalWeightKg).clamp(0.0, 200.0);
+    final weeks = state.weeklyLossKg > 0 && toLose > 0
+        ? (toLose / state.weeklyLossKg).ceil()
+        : 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Weekly weight loss pace',
+          style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Choose how much you want to lose per week (0.1–1.0 kg). Safer pace is usually 0.25–0.75 kg.',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 28),
+        _SliderInput(
+          label: 'KG PER WEEK',
+          value: state.weeklyLossKg,
+          min: 0.1,
+          max: 1.0,
+          unit: 'kg',
+          onChanged: (val) => controller.setWeeklyLossKg((val * 100).roundToDouble() / 100),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryEmerald.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.primaryEmerald.withValues(alpha: 0.25)),
+          ),
+          child: Text(
+            toLose > 0
+                ? 'About $weeks weeks to lose ${toLose.toStringAsFixed(1)} kg (to ${state.goalWeightKg.toStringAsFixed(1)} kg).'
+                : 'Goal weight is at or above current weight — adjust measurements if needed.',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.lightTextPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// STEP: Diet Mode (Normal vs Intermittent Fasting)
 class _StepDietMode extends StatelessWidget {
   final OnboardingState state;
   final OnboardingController controller;

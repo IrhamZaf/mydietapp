@@ -7,6 +7,7 @@ class UserProfileModel {
   final double? goalWeightKg;
   final String? activityLevel;
   final String? goalType;
+  final double? weeklyLossKg;
   final String? dietMode;
   final String? fastingStart;
   final String? fastingEnd;
@@ -22,6 +23,7 @@ class UserProfileModel {
     this.goalWeightKg,
     this.activityLevel,
     this.goalType,
+    this.weeklyLossKg,
     this.dietMode,
     this.fastingStart,
     this.fastingEnd,
@@ -39,6 +41,9 @@ class UserProfileModel {
       goalWeightKg: json['goal_weight_kg'] != null ? (json['goal_weight_kg'] as num).toDouble() : null,
       activityLevel: json['activity_level'] as String?,
       goalType: json['goal_type'] as String?,
+      weeklyLossKg: json['weekly_loss_kg'] != null
+          ? (json['weekly_loss_kg'] as num).toDouble()
+          : null,
       dietMode: json['diet_mode'] as String?,
       fastingStart: json['fasting_start'] as String?,
       fastingEnd: json['fasting_end'] as String?,
@@ -56,6 +61,7 @@ class UserProfileModel {
       if (goalWeightKg != null) 'goal_weight_kg': goalWeightKg,
       if (activityLevel != null) 'activity_level': activityLevel,
       if (goalType != null) 'goal_type': goalType,
+      if (weeklyLossKg != null) 'weekly_loss_kg': weeklyLossKg,
       if (dietMode != null) 'diet_mode': dietMode,
       if (fastingStart != null) 'fasting_start': fastingStart,
       if (fastingEnd != null) 'fasting_end': fastingEnd,

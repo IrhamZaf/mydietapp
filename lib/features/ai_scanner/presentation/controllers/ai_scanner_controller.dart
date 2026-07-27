@@ -23,6 +23,7 @@ class AiScannerState {
   final AiScanModel? scannedResult;
   final String? errorMessage;
   final String selectedMealType;
+  final int scanGeneration;
 
   AiScannerState({
     this.imageFile,
@@ -31,23 +32,29 @@ class AiScannerState {
     this.scannedResult,
     this.errorMessage,
     this.selectedMealType = 'lunch',
+    this.scanGeneration = 0,
   });
 
   AiScannerState copyWith({
     File? imageFile,
+    bool clearImage = false,
     bool? isScanning,
     bool? isLogging,
     AiScanModel? scannedResult,
+    bool clearScannedResult = false,
     String? errorMessage,
     String? selectedMealType,
+    int? scanGeneration,
   }) {
     return AiScannerState(
-      imageFile: imageFile ?? this.imageFile,
+      imageFile: clearImage ? null : (imageFile ?? this.imageFile),
       isScanning: isScanning ?? this.isScanning,
       isLogging: isLogging ?? this.isLogging,
-      scannedResult: scannedResult ?? this.scannedResult,
+      scannedResult:
+          clearScannedResult ? null : (scannedResult ?? this.scannedResult),
       errorMessage: errorMessage,
       selectedMealType: selectedMealType ?? this.selectedMealType,
+      scanGeneration: scanGeneration ?? this.scanGeneration,
     );
   }
 }
@@ -60,7 +67,12 @@ class AiScannerController extends StateNotifier<AiScannerState> {
       : super(AiScannerState());
 
   void setImage(File file) {
-    state = state.copyWith(imageFile: file, scannedResult: null, errorMessage: null);
+    state = state.copyWith(
+      imageFile: file,
+      clearScannedResult: true,
+      errorMessage: null,
+      scanGeneration: state.scanGeneration + 1,
+    );
     scanImage();
   }
 
@@ -92,13 +104,18 @@ class AiScannerController extends StateNotifier<AiScannerState> {
 
   Future<void> scanImage() async {
     if (state.imageFile == null) return;
+    final generation = state.scanGeneration;
+    final file = state.imageFile!;
     state = state.copyWith(isScanning: true, errorMessage: null);
     try {
-      final result = await _scannerRepository.scanFoodImage(state.imageFile!);
+      final result = await _scannerRepository.scanFoodImage(file);
+      if (state.scanGeneration != generation) return;
       state = state.copyWith(isScanning: false, scannedResult: result);
     } on ApiException catch (e) {
+      if (state.scanGeneration != generation) return;
       state = state.copyWith(isScanning: false, errorMessage: e.message);
     } catch (e) {
+      if (state.scanGeneration != generation) return;
       state = state.copyWith(
         isScanning: false,
         errorMessage: 'AI Scanner error. Please check backend connection.',
@@ -133,7 +150,7 @@ class AiScannerController extends StateNotifier<AiScannerState> {
   }
 
   void reset() {
-    state = AiScannerState();
+    state = AiScannerState(scanGeneration: state.scanGeneration + 1);
   }
 }
 

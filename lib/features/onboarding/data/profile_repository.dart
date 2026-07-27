@@ -33,4 +33,14 @@ class ProfileRepository {
       throw ApiException(message: 'Failed to calculate nutrition targets');
     }
   }
+
+  Future<Map<String, dynamic>> fetchPlanBrief() async {
+    try {
+      final response = await _apiClient.dio.post(ApiEndpoints.planBrief);
+      return response.data['data'] as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.error is ApiException) throw e.error as ApiException;
+      throw ApiException(message: 'Failed to generate plan brief');
+    }
+  }
 }

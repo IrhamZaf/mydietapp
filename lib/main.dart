@@ -6,6 +6,7 @@ import 'package:my_diet_app/features/auth/presentation/screens/register_screen.d
 import 'package:my_diet_app/features/auth/presentation/screens/splash_screen.dart';
 import 'package:my_diet_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:my_diet_app/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:my_diet_app/features/onboarding/presentation/screens/plan_brief_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,7 @@ class MyDietApp extends StatelessWidget {
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
         '/onboarding': (_) => const OnboardingScreen(),
+        '/plan-brief': (_) => const PlanBriefScreen(),
         '/dashboard': (_) => const DashboardScreen(),
       },
     );

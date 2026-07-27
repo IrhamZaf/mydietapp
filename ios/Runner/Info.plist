@@ -24,6 +24,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>MyDiet needs camera access to photograph your meals for AI calorie scanning.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MyDiet needs photo library access so you can choose meal photos for AI scanning.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

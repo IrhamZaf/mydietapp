@@ -17,11 +17,15 @@ class OnboardingState {
   final double goalWeightKg;
   final String activityLevel;
   final String goalType;
+  final double weeklyLossKg;
   final String dietMode;
   final String fastingStart;
   final String fastingEnd;
   final bool isLoading;
   final String? errorMessage;
+  final Map<String, dynamic>? planNutrition;
+  final String? planBrief;
+  final String? planSource;
 
   OnboardingState({
     this.step = 0,
@@ -32,12 +36,21 @@ class OnboardingState {
     this.goalWeightKg = 65.0,
     this.activityLevel = 'moderately_active',
     this.goalType = 'lose_weight',
+    this.weeklyLossKg = 0.5,
     this.dietMode = 'normal',
     this.fastingStart = '20:00',
     this.fastingEnd = '12:00',
     this.isLoading = false,
     this.errorMessage,
+    this.planNutrition,
+    this.planBrief,
+    this.planSource,
   });
+
+  /// Total wizard steps: lose_weight inserts a weekly-pace step before diet.
+  int get totalSteps => goalType == 'lose_weight' ? 5 : 4;
+
+  int get lastFormStep => totalSteps - 1;
 
   OnboardingState copyWith({
     int? step,
@@ -48,11 +61,16 @@ class OnboardingState {
     double? goalWeightKg,
     String? activityLevel,
     String? goalType,
+    double? weeklyLossKg,
     String? dietMode,
     String? fastingStart,
     String? fastingEnd,
     bool? isLoading,
     String? errorMessage,
+    Map<String, dynamic>? planNutrition,
+    String? planBrief,
+    String? planSource,
+    bool clearPlan = false,
   }) {
     return OnboardingState(
       step: step ?? this.step,
@@ -63,11 +81,15 @@ class OnboardingState {
       goalWeightKg: goalWeightKg ?? this.goalWeightKg,
       activityLevel: activityLevel ?? this.activityLevel,
       goalType: goalType ?? this.goalType,
+      weeklyLossKg: weeklyLossKg ?? this.weeklyLossKg,
       dietMode: dietMode ?? this.dietMode,
       fastingStart: fastingStart ?? this.fastingStart,
       fastingEnd: fastingEnd ?? this.fastingEnd,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
+      planNutrition: clearPlan ? null : (planNutrition ?? this.planNutrition),
+      planBrief: clearPlan ? null : (planBrief ?? this.planBrief),
+      planSource: clearPlan ? null : (planSource ?? this.planSource),
     );
   }
 
@@ -82,8 +104,13 @@ class OnboardingState {
       'diet_mode': dietMode,
     };
 
+    if (goalType == 'lose_weight') {
+      data['weekly_loss_kg'] = weeklyLossKg;
+    }
+
     if (birthday != null) {
-      data['birthday'] = "${birthday!.year.toString().padLeft(4, '0')}-${birthday!.month.toString().padLeft(2, '0')}-${birthday!.day.toString().padLeft(2, '0')}";
+      data['birthday'] =
+          "${birthday!.year.toString().padLeft(4, '0')}-${birthday!.month.toString().padLeft(2, '0')}-${birthday!.day.toString().padLeft(2, '0')}";
     } else {
       final now = DateTime.now();
       data['birthday'] = "${now.year - 25}-01-01";
@@ -111,28 +138,46 @@ class OnboardingController extends StateNotifier<OnboardingState> {
   void setWeight(double weight) => state = state.copyWith(weightKg: weight);
   void setGoalWeight(double weight) => state = state.copyWith(goalWeightKg: weight);
   void setActivityLevel(String level) => state = state.copyWith(activityLevel: level);
-  void setGoalType(String type) => state = state.copyWith(goalType: type);
-  void setDietMode(String mode) => state = state.copyWith(dietMode: mode);
-  void setFastingTimes(String start, String end) => state = state.copyWith(fastingStart: start, fastingEnd: end);
+  void setGoalType(String type) {
+    state = state.copyWith(goalType: type, step: state.step.clamp(0, type == 'lose_weight' ? 4 : 3));
+  }
 
-  Future<bool> submitProfile() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+  void setWeeklyLossKg(double kg) =>
+      state = state.copyWith(weeklyLossKg: kg.clamp(0.1, 1.0));
+  void setDietMode(String mode) => state = state.copyWith(dietMode: mode);
+  void setFastingTimes(String start, String end) =>
+      state = state.copyWith(fastingStart: start, fastingEnd: end);
+
+  Future<bool> submitProfileAndLoadPlan() async {
+    state = state.copyWith(isLoading: true, errorMessage: null, clearPlan: true);
     try {
       final updatedUser = await _repository.updateProfile(state.toApiData());
       _ref.read(authControllerProvider.notifier).updateUserProfile(updatedUser);
-      state = state.copyWith(isLoading: false);
+
+      final plan = await _repository.fetchPlanBrief();
+      final nutrition = plan['nutrition'] as Map<String, dynamic>? ?? {};
+      final brief = plan['brief'] as String? ?? '';
+      final source = plan['source'] as String? ?? 'template';
+
+      state = state.copyWith(
+        isLoading: false,
+        planNutrition: nutrition,
+        planBrief: brief,
+        planSource: source,
+      );
       return true;
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.message);
       return false;
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(isLoading: false, errorMessage: 'Failed to save profile.');
       return false;
     }
   }
 }
 
-final onboardingControllerProvider = StateNotifierProvider<OnboardingController, OnboardingState>((ref) {
+final onboardingControllerProvider =
+    StateNotifierProvider<OnboardingController, OnboardingState>((ref) {
   final repository = ref.watch(profileRepositoryProvider);
   return OnboardingController(repository, ref);
 });

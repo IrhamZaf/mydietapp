@@ -12,6 +12,9 @@ class ApiEndpoints {
   // Calculator Endpoint
   static String get calculator => '/calculator/calculate';
 
+  // Plan brief (AI / template)
+  static String get planBrief => '/plan/brief';
+
   // Dashboard Endpoint
   static String get dashboard => '/dashboard';
 

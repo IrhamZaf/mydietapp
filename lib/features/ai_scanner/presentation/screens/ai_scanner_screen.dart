@@ -17,14 +17,29 @@ class _AiScannerScreenState extends ConsumerState<AiScannerScreen> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
-    final XFile? photo = await _picker.pickImage(
-      source: source,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 85,
-    );
-    if (photo != null) {
-      ref.read(aiScannerControllerProvider.notifier).setImage(File(photo.path));
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (!mounted) return;
+      if (photo != null) {
+        ref.read(aiScannerControllerProvider.notifier).setImage(File(photo.path));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            source == ImageSource.camera
+                ? 'Could not open camera. Check camera permission in Settings.'
+                : 'Could not open photo library. Check photo permission in Settings.',
+          ),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
     }
   }
 
