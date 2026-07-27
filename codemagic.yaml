@@ -18,6 +18,7 @@ workflows:
         BUNDLE_ID: "com.vinculotech.Tests-iOS"
         XCODE_WORKSPACE: "ios/Runner.xcworkspace"
         XCODE_SCHEME: "Runner"
+        BASE_URL: "https://mydiet.vinculotech.com/api/v1"
     scripts:
       - name: Set up code signing settings on Xcode project
         script: |
@@ -41,6 +42,7 @@ workflows:
           fi
           echo "Using build number: $BUILD_NUMBER (latest TestFlight: $LATEST)"
           flutter build ipa --release \
+            --dart-define=BASE_URL="$BASE_URL" \
             --build-number="$BUILD_NUMBER" \
             --export-options-plist=/Users/builder/export_options.plist
     artifacts:
