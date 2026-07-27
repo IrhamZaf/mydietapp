@@ -7,8 +7,8 @@ workflows:
       app_store_connect: "MyDiet API Key"
     environment:
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.vinculotech.Tests-iOS
+        provisioning_profiles:
+          - MyDiet_AppStore_Profile
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -21,7 +21,7 @@ workflows:
           flutter packages pub get
       - name: Install CocoaPods dependencies
         script: |
-          if [ -d "ios" ]; then
+          if [ -f "ios/Podfile" ]; then
             cd ios && pod install
           fi
       - name: Flutter build IPA
