@@ -4,11 +4,13 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
-      app_store_connect: "Codemagic"
+      app_store_connect: "mydietapp"
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.vinculotech.Tests-iOS
+        provisioning_profiles:
+          - MyDiet_AppStore_Profile
       flutter: stable
       xcode: latest
       cocoapods: default
