@@ -9,22 +9,18 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      # Uses Code signing identities: production cert "MyDiet_Cert"
+      # plus any App Store profile for this bundle ID.
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.vinculotech.Tests-iOS
       vars:
         BUNDLE_ID: "com.vinculotech.Tests-iOS"
         XCODE_WORKSPACE: "ios/Runner.xcworkspace"
         XCODE_SCHEME: "Runner"
-      # Required: RSA private key used to create/match the Apple Distribution certificate.
-      # Add CERTIFICATE_PRIVATE_KEY in Codemagic → App settings → Environment variables
-      # (group it into this workflow), or paste an encrypted value here.
     scripts:
-      - name: Set up keychain & fetch signing files
+      - name: Set up code signing settings on Xcode project
         script: |
-          set -euo pipefail
-          keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-          keychain add-certificates
           xcode-project use-profiles
       - name: Get Flutter packages
         script: |
