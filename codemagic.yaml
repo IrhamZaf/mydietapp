@@ -40,4 +40,6 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true
+        # Upload only — internal testers can install after ASC processing.
+        # Do not submit for external TestFlight beta review.
+        submit_to_testflight: false
