@@ -8,7 +8,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.mydiet.app.myDietApp
+        bundle_identifier: com.vinculotech.Tests-iOS
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -16,7 +16,7 @@ workflows:
       - name: Set up keychain & fetch signing files
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files "com.mydiet.app.myDietApp" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "com.vinculotech.Tests-iOS" --type IOS_APP_STORE --create
           app-store-connect add-certificates
           xcode-project use-profiles
       - name: Get Flutter packages
