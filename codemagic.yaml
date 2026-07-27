@@ -1,15 +1,23 @@
 workflows:
   ios-workflow:
-    name: iOS Workflow
+    name: iOS TestFlight Release
     instance_type: mac_mini_m2
     max_build_duration: 60
+    integrations:
+      app_store_connect: "Codemagic Key" # Match the key name saved in Codemagic Team Integrations
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mydiet.app.myDietApp
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Set up code signing settings
+      - name: Set up keychain & fetch signing files
         script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "com.mydiet.app.myDietApp" --type IOS_APP_STORE --create
+          app-store-connect add-certificates
           xcode-project use-profiles
       - name: Get Flutter packages
         script: |
@@ -19,9 +27,17 @@ workflows:
           if [ -f "ios/Podfile" ]; then
             cd ios && pod install
           fi
-      - name: Build iOS app
+      - name: Flutter build IPA
         script: |
-          flutter build ipa --release --no-codesign
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_build_localizations:
+          - locale: en-US
+            whats_new: New release built automatically via Codemagic
