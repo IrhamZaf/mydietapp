@@ -6,9 +6,6 @@ workflows:
     integrations:
       app_store_connect: "MyDiet API Key"
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.vinculotech.Tests-iOS
       flutter: stable
       xcode: latest
       cocoapods: default
