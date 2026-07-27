@@ -24,7 +24,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (next.status == AuthStatus.authenticated) {
         final user = next.user;
         if (user != null && user.profile != null && user.profile!.isProfileComplete) {
-          Navigator.of(context).pushReplacementNamed('/dashboard');
+          Navigator.of(context).pushReplacementNamed('/home');
         } else {
           Navigator.of(context).pushReplacementNamed('/onboarding');
         }

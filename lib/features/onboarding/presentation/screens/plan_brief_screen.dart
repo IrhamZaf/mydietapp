@@ -126,7 +126,7 @@ class PlanBriefScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/dashboard');
+                    Navigator.of(context).pushReplacementNamed('/home');
                   },
                   child: const Text('Start Tracking'),
                 ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:my_diet_app/core/config/theme.dart';
-import 'package:my_diet_app/features/ai_scanner/presentation/screens/ai_scanner_screen.dart';
 import 'package:my_diet_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:my_diet_app/features/dashboard/data/dashboard_model.dart';
 import 'package:my_diet_app/features/dashboard/presentation/controllers/dashboard_controller.dart';
@@ -16,33 +15,17 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppTheme.primaryEmerald,
-        foregroundColor: Colors.white,
-        elevation: 6,
-        icon: const Icon(Icons.camera_alt_rounded),
-        label: const Text(
-          'Scan Meal with AI',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AiScannerScreen()),
-          );
-        },
-      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async => ref.refresh(dashboardControllerProvider.future),
           color: AppTheme.primaryEmerald,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 90),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Header Row (Expanded to prevent overflow)
+                // Top Header Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -62,29 +45,6 @@ class DashboardScreen extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.logout_rounded, color: AppTheme.lightTextSecondary),
-                        onPressed: () async {
-                          await ref.read(authControllerProvider.notifier).logout();
-                          if (context.mounted) {
-                            Navigator.of(context).pushReplacementNamed('/login');
-                          }
-                        },
                       ),
                     ),
                   ],

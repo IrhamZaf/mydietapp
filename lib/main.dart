@@ -4,7 +4,7 @@ import 'package:my_diet_app/core/config/theme.dart';
 import 'package:my_diet_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:my_diet_app/features/auth/presentation/screens/register_screen.dart';
 import 'package:my_diet_app/features/auth/presentation/screens/splash_screen.dart';
-import 'package:my_diet_app/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:my_diet_app/features/home/presentation/screens/main_shell_screen.dart';
 import 'package:my_diet_app/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:my_diet_app/features/onboarding/presentation/screens/plan_brief_screen.dart';
 
@@ -35,7 +35,8 @@ class MyDietApp extends StatelessWidget {
         '/register': (_) => const RegisterScreen(),
         '/onboarding': (_) => const OnboardingScreen(),
         '/plan-brief': (_) => const PlanBriefScreen(),
-        '/dashboard': (_) => const DashboardScreen(),
+        '/dashboard': (_) => const MainShellScreen(),
+        '/home': (_) => const MainShellScreen(),
       },
     );
   }
