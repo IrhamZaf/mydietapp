@@ -93,7 +93,15 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildDashboardBody(BuildContext context, DashboardModel data) {
-    final calorieRatio = (data.caloriesConsumed / (data.calorieTarget > 0 ? data.calorieTarget : 1)).clamp(0.0, 1.0);
+    final target = data.calorieTarget > 0 ? data.calorieTarget : 1;
+    final exceeded = data.caloriesConsumed > data.calorieTarget;
+    final overBy = exceeded ? data.caloriesConsumed - data.calorieTarget : 0;
+    // Fill ring to 100% when over; still show full red ring.
+    final calorieRatio = (data.caloriesConsumed / target).clamp(0.0, 1.0);
+    const overColor = Color(0xFFEF4444);
+    final meterColor = exceeded ? overColor : AppTheme.primaryEmerald;
+    final centerValue = exceeded ? overBy : data.caloriesRemaining;
+    final centerLabel = exceeded ? 'kcal over' : 'kcal remaining';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +163,9 @@ class DashboardScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppTheme.lightBorder),
+            border: Border.all(
+              color: exceeded ? overColor.withValues(alpha: 0.35) : AppTheme.lightBorder,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -166,12 +176,12 @@ class DashboardScreen extends ConsumerWidget {
           ),
           child: Column(
             children: [
-              const Text(
-                'DAILY CALORIES',
+              Text(
+                exceeded ? 'CALORIE LIMIT EXCEEDED' : 'DAILY CALORIES',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
-                  color: AppTheme.lightTextSecondary,
+                  color: exceeded ? overColor : AppTheme.lightTextSecondary,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -186,37 +196,69 @@ class DashboardScreen extends ConsumerWidget {
                       value: calorieRatio,
                       strokeWidth: 14,
                       backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryEmerald),
+                      valueColor: AlwaysStoppedAnimation<Color>(meterColor),
                     ),
                   ),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${data.caloriesRemaining}',
+                        '$centerValue',
                         style: Theme.of(context).textTheme.displayLarge?.copyWith(
                               fontSize: 36,
                               fontWeight: FontWeight.bold,
                               height: 1,
-                              color: AppTheme.lightTextPrimary,
+                              color: exceeded ? overColor : AppTheme.lightTextPrimary,
                             ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'kcal remaining',
-                        style: TextStyle(fontSize: 13, color: AppTheme.lightTextSecondary, fontWeight: FontWeight.w500),
+                      Text(
+                        centerLabel,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: exceeded ? overColor : AppTheme.lightTextSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
+              if (exceeded) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: overColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'You are $overBy kcal over your ${data.calorieTarget} kcal goal',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: overColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _MacroStat(label: 'Eaten', value: '${data.caloriesConsumed} kcal', valueColor: AppTheme.primaryEmerald),
+                  _MacroStat(
+                    label: 'Eaten',
+                    value: '${data.caloriesConsumed} kcal',
+                    valueColor: meterColor,
+                  ),
                   Container(height: 30, width: 1, color: AppTheme.lightBorder),
-                  _MacroStat(label: 'Target Goal', value: '${data.calorieTarget} kcal', valueColor: AppTheme.lightTextPrimary),
+                  _MacroStat(
+                    label: 'Target Goal',
+                    value: '${data.calorieTarget} kcal',
+                    valueColor: AppTheme.lightTextPrimary,
+                  ),
                 ],
               ),
             ],
