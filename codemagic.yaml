@@ -6,22 +6,22 @@ workflows:
     integrations:
       app_store_connect: "MyDiet API Key"
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.vinculotech.Tests-iOS
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Set up keychain & fetch signing files
+      - name: Set up code signing settings on Xcode project
         script: |
-          keychain initialize
-          app-store-connect fetch-signing-files "com.vinculotech.Tests-iOS" --type IOS_APP_STORE --create
-          app-store-connect add-certificates
           xcode-project use-profiles
       - name: Get Flutter packages
         script: |
           flutter packages pub get
       - name: Install CocoaPods dependencies
         script: |
-          if [ -f "ios/Podfile" ]; then
+          if [ -d "ios" ]; then
             cd ios && pod install
           fi
       - name: Flutter build IPA
