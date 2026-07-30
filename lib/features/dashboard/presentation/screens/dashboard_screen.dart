@@ -386,85 +386,88 @@ class _CaloriesCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              // Calories left
-              Expanded(
-                flex: 5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Calories Left',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.lightTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        fmt.format(over ? -left : left),
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w800,
-                          height: 1.05,
-                          color: over ? const Color(0xFFFF5C5C) : AppTheme.primaryBlue,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 380;
+              final ringSize = compact ? 112.0 : 128.0;
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Calories left
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Calories Left',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.lightTextPrimary,
+                          ),
                         ),
-                      ),
-                    ),
-                    Text(
-                      over ? 'kcal over' : 'kcal',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: over ? const Color(0xFFFF5C5C) : AppTheme.lightTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const UpdateGoalsScreen()),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'of ${fmt.format(calorieTarget)} kcal',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.lightTextSecondary,
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            fmt.format(over ? -left : left),
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: compact ? 34 : 38,
+                              fontWeight: FontWeight.w800,
+                              height: 1.05,
+                              color: over ? const Color(0xFFFF5C5C) : AppTheme.primaryBlue,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.edit_outlined,
-                            size: 13,
-                            color: AppTheme.primaryBlue,
+                        ),
+                        Text(
+                          over ? 'kcal over' : 'kcal',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: over ? const Color(0xFFFF5C5C) : AppTheme.lightTextPrimary,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const UpdateGoalsScreen()),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'of ${fmt.format(calorieTarget)} kcal',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.lightTextSecondary,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.edit_outlined,
+                                size: 13,
+                                color: AppTheme.primaryBlue,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              // Consumed ring
-              Expanded(
-                flex: 6,
-                child: Center(
-                  child: SizedBox(
-                    width: 128,
-                    height: 128,
+                  ),
+                  SizedBox(width: compact ? 10 : 14),
+                  // Consumed ring
+                  SizedBox(
+                    width: ringSize,
+                    height: ringSize,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
                         SizedBox(
-                          width: 128,
-                          height: 128,
+                          width: ringSize,
+                          height: ringSize,
                           child: CircularProgressIndicator(
                             value: ratio,
                             strokeWidth: 11,
@@ -480,8 +483,8 @@ class _CaloriesCard extends StatelessWidget {
                           children: [
                             Text(
                               fmt.format(calories),
-                              style: const TextStyle(
-                                fontSize: 22,
+                              style: TextStyle(
+                                fontSize: compact ? 20 : 22,
                                 fontWeight: FontWeight.w800,
                                 color: AppTheme.lightTextPrimary,
                               ),
@@ -498,35 +501,36 @@ class _CaloriesCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
-              ),
-              // Macro totals
-              Expanded(
-                flex: 5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _MacroDotRow(
-                      label: 'Protein',
-                      value: '${protein.round()} / ${proteinTarget}g',
-                      color: AppTheme.macroProtein,
+                  SizedBox(width: compact ? 10 : 14),
+                  // Macro totals
+                  SizedBox(
+                    width: compact ? 86 : 96,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _MacroDotRow(
+                          label: 'Protein',
+                          value: '${protein.round()} / ${proteinTarget}g',
+                          color: AppTheme.macroProtein,
+                        ),
+                        const SizedBox(height: 14),
+                        _MacroDotRow(
+                          label: 'Carbs',
+                          value: '${carbs.round()} / ${carbsTarget}g',
+                          color: AppTheme.macroCarbs,
+                        ),
+                        const SizedBox(height: 14),
+                        _MacroDotRow(
+                          label: 'Fat',
+                          value: '${fat.round()} / ${fatTarget}g',
+                          color: AppTheme.macroFat,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 14),
-                    _MacroDotRow(
-                      label: 'Carbs',
-                      value: '${carbs.round()} / ${carbsTarget}g',
-                      color: AppTheme.macroCarbs,
-                    ),
-                    const SizedBox(height: 14),
-                    _MacroDotRow(
-                      label: 'Fat',
-                      value: '${fat.round()} / ${fatTarget}g',
-                      color: AppTheme.macroFat,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
           Row(
