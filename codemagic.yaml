@@ -25,12 +25,13 @@ workflows:
           xcode-project use-profiles
       - name: Get Flutter packages
         script: |
-          flutter packages pub get
+          flutter pub get
       - name: Install CocoaPods dependencies
         script: |
-          if [ -f "ios/Podfile" ]; then
-            cd ios && pod install
-          fi
+          # Podfile needs ios/Flutter/Generated.xcconfig (created by Flutter, not in git).
+          flutter build ios --config-only --release \
+            --dart-define=BASE_URL="$BASE_URL"
+          cd ios && pod install
       - name: Flutter build IPA
         script: |
           set -euo pipefail
