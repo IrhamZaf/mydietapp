@@ -403,13 +403,18 @@ class _CaloriesCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      fmt.format(over ? -left : left),
-                      style: TextStyle(
-                        fontSize: 38,
-                        fontWeight: FontWeight.w800,
-                        height: 1.05,
-                        color: over ? const Color(0xFFFF5C5C) : AppTheme.primaryBlue,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        fmt.format(over ? -left : left),
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                          color: over ? const Color(0xFFFF5C5C) : AppTheme.primaryBlue,
+                        ),
                       ),
                     ),
                     Text(
