@@ -2,30 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Clean, modern light look: vivid blue primary, soft blue-grey surfaces,
+/// rounded cards, Inter type. Matches the dashboard mockup.
 class AppTheme {
-  // Fresh & Clean Modern Color Palette
-  static const Color primaryEmerald = Color(0xFF10B981); // Crisp Mint Emerald
-  static const Color primaryDarkEmerald = Color(0xFF059669);
-  static const Color secondaryTeal = Color(0xFF14B8A6);
-  static const Color accentBlue = Color(0xFF3B82F6); // iOS-like Blue Accent
-  static const Color accentOrange = Color(0xFFF97316); // Energy Orange
-  static const Color accentPurple = Color(0xFF8B5CF6);
+  static const Color primaryBlue = Color(0xFF2F6BFF);
+  static const Color primaryDarkBlue = Color(0xFF1E4FD6);
 
-  // Clean Light Theme Colors (Bright & Minimalist)
-  static const Color lightBackground = Color(0xFFF8FAFC); // Soft Slate Light
+  // Legacy aliases (older screens reference these names)
+  static const Color primaryEmerald = primaryBlue;
+  static const Color primaryDarkEmerald = primaryDarkBlue;
+  static const Color secondaryTeal = Color(0xFF4C8DFF);
+
+  static const Color accentCoral = Color(0xFFFF7A59);
+  static const Color accentBlue = primaryBlue;
+  static const Color accentOrange = Color(0xFFF5A623);
+  static const Color accentPurple = Color(0xFF9B8CFF);
+  static const Color accentPink = Color(0xFFFF6B9D);
+
+  // Macro colors (mockup: protein green, carbs blue, fat orange)
+  static const Color macroProtein = Color(0xFF22C55E);
+  static const Color macroCarbs = Color(0xFF3B82F6);
+  static const Color macroFat = Color(0xFFF5A623);
+
+  static const Color accentOrangeLegacy = accentOrange;
+
+  static const Color lightBackground = Color(0xFFF3F6FC);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightCard = Color(0xFFFFFFFF);
-  static const Color lightBorder = Color(0xFFE2E8F0);
-  static const Color lightTextPrimary = Color(0xFF0F172A); // Deep Charcoal Slate
-  static const Color lightTextSecondary = Color(0xFF64748B); // Soft Muted Slate
-  static const Color lightInputFill = Color(0xFFF1F5F9);
+  static const Color lightBorder = Color(0xFFE6EBF4);
+  static const Color lightTextPrimary = Color(0xFF16233A);
+  static const Color lightTextSecondary = Color(0xFF7B8BA3);
+  static const Color lightInputFill = Color(0xFFEEF2FA);
 
-  // Dark Theme Neutral Colors (Fallback)
-  static const Color darkBackground = Color(0xFF0F172A);
-  static const Color darkSurface = Color(0xFF1E293B);
-  static const Color darkCard = Color(0xFF334155);
-  static const Color darkTextPrimary = Color(0xFFF8FAFC);
-  static const Color darkTextSecondary = Color(0xFF94A3B8);
+  static const Color darkBackground = Color(0xFF0E1626);
+  static const Color darkSurface = Color(0xFF16233A);
+  static const Color darkCard = Color(0xFF1E2E4A);
+  static const Color darkTextPrimary = Color(0xFFF3F6FC);
+  static const Color darkTextSecondary = Color(0xFF9BAAC4);
+
+  static List<BoxShadow> get softShadow => [
+        BoxShadow(
+          color: const Color(0xFF16233A).withValues(alpha: 0.06),
+          blurRadius: 24,
+          offset: const Offset(0, 8),
+        ),
+      ];
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -33,12 +54,12 @@ class AppTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: lightBackground,
       colorScheme: const ColorScheme.light(
-        primary: primaryEmerald,
+        primary: primaryBlue,
         onPrimary: Colors.white,
-        secondary: secondaryTeal,
+        secondary: accentOrange,
         surface: lightSurface,
         onSurface: lightTextPrimary,
-        error: Color(0xFFEF4444),
+        error: Color(0xFFFF5C5C),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: lightBackground,
@@ -47,28 +68,28 @@ class AppTheme {
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         iconTheme: const IconThemeData(color: lightTextPrimary),
-        titleTextStyle: GoogleFonts.outfit(
-          fontSize: 18,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 17,
           fontWeight: FontWeight.w700,
           color: lightTextPrimary,
         ),
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
+        displayLarge: GoogleFonts.inter(
+          fontSize: 30,
+          fontWeight: FontWeight.w800,
           color: lightTextPrimary,
-          letterSpacing: -0.5,
+          letterSpacing: -0.6,
         ),
-        titleLarge: GoogleFonts.outfit(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
+        titleLarge: GoogleFonts.inter(
+          fontSize: 21,
+          fontWeight: FontWeight.w800,
           color: lightTextPrimary,
           letterSpacing: -0.3,
         ),
-        titleMedium: GoogleFonts.outfit(
+        titleMedium: GoogleFonts.inter(
           fontSize: 16,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           color: lightTextPrimary,
         ),
         bodyLarge: GoogleFonts.inter(
@@ -106,21 +127,21 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: primaryEmerald, width: 2),
+          borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
+          borderSide: const BorderSide(color: Color(0xFFFF5C5C), width: 1),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryEmerald,
+          backgroundColor: primaryBlue,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -129,15 +150,21 @@ class AppTheme {
           side: const BorderSide(color: lightBorder, width: 1.5),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
-        selectedItemColor: primaryEmerald,
+        selectedItemColor: primaryBlue,
         unselectedItemColor: lightTextSecondary,
-        elevation: 8,
+        elevation: 0,
         type: BottomNavigationBarType.fixed,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primaryBlue,
+        foregroundColor: Colors.white,
+        elevation: 8,
+        shape: CircleBorder(),
       ),
     );
   }
@@ -148,24 +175,24 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: darkBackground,
       colorScheme: const ColorScheme.dark(
-        primary: primaryEmerald,
+        primary: primaryBlue,
         onPrimary: Colors.white,
-        secondary: secondaryTeal,
+        secondary: accentOrange,
         surface: darkSurface,
         onSurface: darkTextPrimary,
-        error: Color(0xFFEF4444),
+        error: Color(0xFFFF5C5C),
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.bold, color: darkTextPrimary),
-        titleLarge: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: darkTextPrimary),
-        titleMedium: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: darkTextPrimary),
+        displayLarge: GoogleFonts.inter(fontSize: 30, fontWeight: FontWeight.w800, color: darkTextPrimary),
+        titleLarge: GoogleFonts.inter(fontSize: 21, fontWeight: FontWeight.w800, color: darkTextPrimary),
+        titleMedium: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: darkTextPrimary),
         bodyLarge: GoogleFonts.inter(fontSize: 16, color: darkTextPrimary),
         bodyMedium: GoogleFonts.inter(fontSize: 14, color: darkTextSecondary),
       ),
       cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
   }

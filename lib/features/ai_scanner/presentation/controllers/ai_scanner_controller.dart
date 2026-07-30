@@ -4,11 +4,13 @@ import 'package:my_diet_app/core/network/api_exception.dart';
 import 'package:my_diet_app/features/ai_scanner/data/ai_scan_model.dart';
 import 'package:my_diet_app/features/ai_scanner/data/ai_scanner_repository.dart';
 import 'package:my_diet_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:my_diet_app/features/health/presentation/health_providers.dart';
 import 'package:my_diet_app/features/meals/data/meal_repository.dart';
 
 final mealRepositoryProvider = Provider((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  return MealRepository(apiClient);
+  final health = ref.watch(healthServiceProvider);
+  return MealRepository(apiClient, healthService: health);
 });
 
 final aiScannerRepositoryProvider = Provider((ref) {
@@ -137,6 +139,7 @@ class AiScannerController extends StateNotifier<AiScannerState> {
         carbs: result.carbs,
         fat: result.fat,
         portionSize: result.portionSize,
+        imageFile: state.imageFile,
       );
       state = state.copyWith(isLogging: false);
       return true;

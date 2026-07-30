@@ -1,118 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:my_diet_app/core/config/theme.dart';
-import 'package:my_diet_app/core/network/api_exception.dart';
-import 'package:my_diet_app/features/auth/data/user_model.dart';
 import 'package:my_diet_app/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:my_diet_app/features/dashboard/presentation/controllers/dashboard_controller.dart';
-import 'package:my_diet_app/features/onboarding/presentation/controllers/onboarding_controller.dart';
+import 'package:my_diet_app/features/health/presentation/health_providers.dart';
+import 'package:my_diet_app/features/health/presentation/screens/apple_health_screen.dart';
+import 'package:my_diet_app/features/profile/presentation/screens/update_goals_screen.dart';
+import 'package:my_diet_app/features/profile/presentation/screens/update_information_screen.dart';
 
-class ProfileScreen extends ConsumerStatefulWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
-  @override
-  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  late String _goalType;
-  late String _activityLevel;
-  late String _dietMode;
-  late double _goalWeightKg;
-  late double _weightKg;
-  late double _weeklyLossKg;
-  String _fastingStart = '20:00';
-  String _fastingEnd = '12:00';
-  bool _saving = false;
-  String? _message;
-  bool _messageIsError = false;
-  bool _initialized = false;
-
-  void _hydrateFromUser(UserModel? user) {
-    final p = user?.profile;
-    _goalType = p?.goalType ?? 'lose_weight';
-    _activityLevel = p?.activityLevel ?? 'moderately_active';
-    _dietMode = p?.dietMode ?? 'normal';
-    _goalWeightKg = p?.goalWeightKg ?? 65;
-    _weightKg = p?.weightKg ?? 70;
-    _weeklyLossKg = p?.weeklyLossKg ?? 0.5;
-    _fastingStart = p?.fastingStart?.substring(0, 5) ?? '20:00';
-    _fastingEnd = p?.fastingEnd?.substring(0, 5) ?? '12:00';
-    _initialized = true;
-  }
-
-  Future<void> _save() async {
-    setState(() {
-      _saving = true;
-      _message = null;
-    });
-    try {
-      final data = <String, dynamic>{
-        'goal_type': _goalType,
-        'activity_level': _activityLevel,
-        'diet_mode': _dietMode,
-        'goal_weight_kg': _goalWeightKg,
-        'weight_kg': _weightKg,
-      };
-      if (_goalType == 'lose_weight') {
-        data['weekly_loss_kg'] = _weeklyLossKg;
-      }
-      if (_dietMode == 'intermittent_fasting') {
-        data['fasting_start'] = _fastingStart;
-        data['fasting_end'] = _fastingEnd;
-      }
-
-      final updated = await ref.read(profileRepositoryProvider).updateProfile(data);
-      ref.read(authControllerProvider.notifier).updateUserProfile(updated);
-      ref.invalidate(dashboardControllerProvider);
-
-      setState(() {
-        _message =
-            'Goals updated. Meal history is unchanged. Calorie targets were recalculated.';
-        _messageIsError = false;
-      });
-    } on ApiException catch (e) {
-      setState(() {
-        _message = e.message;
-        _messageIsError = true;
-      });
-    } catch (_) {
-      setState(() {
-        _message = 'Failed to update profile.';
-        _messageIsError = true;
-      });
-    } finally {
-      if (mounted) setState(() => _saving = false);
+  String _labelGoal(String? v) {
+    switch (v) {
+      case 'lose_weight':
+        return 'Lose weight';
+      case 'gain_weight':
+        return 'Gain weight';
+      case 'maintain_weight':
+        return 'Maintain weight';
+      default:
+        return '—';
     }
   }
 
-  Future<void> _pickTime({required bool isStart}) async {
-    final parts = (isStart ? _fastingStart : _fastingEnd).split(':');
-    final initial = TimeOfDay(
-      hour: int.tryParse(parts[0]) ?? 20,
-      minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
-    );
-    final picked = await showTimePicker(context: context, initialTime: initial);
-    if (picked == null) return;
-    final formatted =
-        '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-    setState(() {
-      if (isStart) {
-        _fastingStart = formatted;
-      } else {
-        _fastingEnd = formatted;
-      }
-    });
+  String _labelActivity(String? v) {
+    switch (v) {
+      case 'sedentary':
+        return 'Sedentary';
+      case 'lightly_active':
+        return 'Lightly active';
+      case 'moderately_active':
+        return 'Moderately active';
+      case 'very_active':
+        return 'Very active';
+      case 'extra_active':
+        return 'Extra active';
+      default:
+        return '—';
+    }
   }
 
+  String _labelDiet(String? v) {
+    if (v == 'intermittent_fasting') return 'Intermittent fasting';
+    if (v == 'normal') return 'Calorie tracking';
+    return '—';
+  }
+
+  String _fmtKg(double? v) => v == null ? '—' : '${v.toStringAsFixed(1)} kg';
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
-    if (!_initialized && user != null) {
-      _hydrateFromUser(user);
-    } else if (!_initialized) {
-      _hydrateFromUser(null);
-    }
+    final p = user?.profile;
 
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
@@ -145,292 +84,180 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               user?.email ?? '',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Update goals anytime — meal & weight history stay intact.',
-              style: TextStyle(fontSize: 13, color: AppTheme.lightTextSecondary),
-            ),
             const SizedBox(height: 20),
 
-            if (_message != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: (_messageIsError ? Colors.red : AppTheme.primaryEmerald)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _message!,
-                  style: TextStyle(
-                    color: _messageIsError ? Colors.red : AppTheme.primaryDarkEmerald,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            _sectionLabel('GOAL TYPE'),
-            _option(
-              title: 'Lose Weight',
-              selected: _goalType == 'lose_weight',
-              onTap: () => setState(() => _goalType = 'lose_weight'),
-            ),
-            _option(
-              title: 'Maintain Weight',
-              selected: _goalType == 'maintain_weight',
-              onTap: () => setState(() => _goalType = 'maintain_weight'),
-            ),
-            _option(
-              title: 'Gain Weight / Muscle',
-              selected: _goalType == 'gain_weight',
-              onTap: () => setState(() => _goalType = 'gain_weight'),
-            ),
-
-            if (_goalType == 'lose_weight') ...[
-              const SizedBox(height: 16),
-              _sectionLabel('WEEKLY LOSS PACE'),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('kg / week', style: TextStyle(color: AppTheme.lightTextSecondary)),
-                  Text(
-                    '${_weeklyLossKg.toStringAsFixed(2)} kg',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryEmerald,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              Slider(
-                value: _weeklyLossKg.clamp(0.1, 1.0),
-                min: 0.1,
-                max: 1.0,
-                divisions: 18,
-                activeColor: AppTheme.primaryEmerald,
-                onChanged: (v) => setState(() => _weeklyLossKg = (v * 100).roundToDouble() / 100),
-              ),
-            ],
-
-            const SizedBox(height: 8),
-            _sectionLabel('WEIGHT'),
-            _sliderRow(
-              label: 'Current',
-              value: _weightKg,
-              onChanged: (v) => setState(() => _weightKg = (v * 10).roundToDouble() / 10),
-            ),
-            _sliderRow(
-              label: 'Goal',
-              value: _goalWeightKg,
-              onChanged: (v) => setState(() => _goalWeightKg = (v * 10).roundToDouble() / 10),
-            ),
-
-            const SizedBox(height: 8),
-            _sectionLabel('ACTIVITY'),
-            for (final entry in const [
-              ('sedentary', 'Sedentary'),
-              ('lightly_active', 'Lightly Active'),
-              ('moderately_active', 'Moderately Active'),
-              ('very_active', 'Very Active'),
-              ('extra_active', 'Extra Active'),
-            ])
-              _option(
-                title: entry.$2,
-                selected: _activityLevel == entry.$1,
-                onTap: () => setState(() => _activityLevel = entry.$1),
-              ),
-
-            const SizedBox(height: 8),
-            _sectionLabel('TRACKING MODE'),
-            _option(
-              title: 'Normal calorie tracking',
-              subtitle: 'Log meals anytime against a daily calorie goal',
-              selected: _dietMode == 'normal',
-              onTap: () => setState(() => _dietMode = 'normal'),
-            ),
-            _option(
-              title: 'Intermittent fasting',
-              subtitle: 'Track eating window with a fasting countdown',
-              selected: _dietMode == 'intermittent_fasting',
-              onTap: () => setState(() => _dietMode = 'intermittent_fasting'),
-            ),
-
-            if (_dietMode == 'intermittent_fasting') ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _timeTile(
-                      label: 'Fasting starts',
-                      time: _fastingStart,
-                      onTap: () => _pickTime(isStart: true),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _timeTile(
-                      label: 'Fasting ends',
-                      time: _fastingEnd,
-                      onTap: () => _pickTime(isStart: false),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            const SizedBox(height: 28),
-            ElevatedButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                    )
-                  : const Text('Save Goals'),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Saving only updates your targets & diet mode. Logged meals are not deleted.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8, top: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          color: AppTheme.lightTextSecondary,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-
-  Widget _option({
-    required String title,
-    String? subtitle,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: selected ? AppTheme.primaryEmerald.withValues(alpha: 0.08) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: selected ? AppTheme.primaryEmerald : AppTheme.lightBorder,
-                width: selected ? 2 : 1,
-              ),
-            ),
-            child: Row(
+            _Card(
+              title: 'Personal information',
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: selected ? AppTheme.primaryEmerald : AppTheme.lightTextPrimary,
-                        ),
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: const TextStyle(fontSize: 12, color: AppTheme.lightTextSecondary),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Icon(
-                  selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-                  color: selected ? AppTheme.primaryEmerald : AppTheme.lightTextSecondary,
+                _Row(label: 'Gender', value: p?.gender == null ? '—' : p!.gender![0].toUpperCase() + p.gender!.substring(1)),
+                _Row(label: 'Age', value: p?.age != null ? '${p!.age}' : '—'),
+                _Row(label: 'Height', value: p?.heightCm != null ? '${p!.heightCm!.toStringAsFixed(0)} cm' : '—'),
+                _Row(label: 'Current weight', value: _fmtKg(p?.weightKg)),
+                _Row(label: 'Activity', value: _labelActivity(p?.activityLevel)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.person_outline),
+                label: const Text('Update information'),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const UpdateInformationScreen()),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            _Card(
+              title: 'Apple Health',
+              children: [
+                _Row(
+                  label: 'Status',
+                  value: (ref.watch(healthConnectedProvider).valueOrNull ?? false)
+                      ? 'Connected'
+                      : 'Not connected',
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.favorite_outline),
+                label: const Text('Manage Apple Health'),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AppleHealthScreen()),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            _Card(
+              title: 'Goals & tracking',
+              children: [
+                _Row(label: 'Goal', value: _labelGoal(p?.goalType)),
+                _Row(label: 'Goal weight', value: _fmtKg(p?.goalWeightKg)),
+                if (p?.goalType == 'lose_weight')
+                  _Row(
+                    label: 'Weekly pace',
+                    value: p?.weeklyLossKg != null
+                        ? '${p!.weeklyLossKg!.toStringAsFixed(2)} kg/week'
+                        : '—',
+                  ),
+                _Row(label: 'Mode', value: _labelDiet(p?.dietMode)),
+                if (p?.dietMode == 'intermittent_fasting')
+                  _Row(
+                    label: 'Fasting window',
+                    value: '${_shortTime(p?.fastingStart)} – ${_shortTime(p?.fastingEnd)}',
+                  ),
+                _Row(
+                  label: 'Daily calories',
+                  value: p?.calorieTarget != null ? '${p!.calorieTarget} kcal' : '—',
+                ),
+                _Row(
+                  label: 'Protein target',
+                  value: p?.proteinTarget != null ? '${p!.proteinTarget} g' : '—',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.flag_outlined),
+                label: const Text('Update goals'),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const UpdateGoalsScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Updating information or goals recalculates targets. Meal history is never deleted.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: AppTheme.lightTextSecondary),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _sliderRow({
-    required String label,
-    required double value,
-    required ValueChanged<double> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(color: AppTheme.lightTextSecondary)),
-            Text(
-              '${value.toStringAsFixed(1)} kg',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryEmerald),
+  String _shortTime(String? t) {
+    if (t == null || t.isEmpty) return '—';
+    return t.length >= 5 ? t.substring(0, 5) : t;
+  }
+}
+
+class _Card extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _Card({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              color: AppTheme.lightTextSecondary,
+              letterSpacing: 0.8,
             ),
-          ],
-        ),
-        Slider(
-          value: value.clamp(30, 200),
-          min: 30,
-          max: 200,
-          activeColor: AppTheme.primaryEmerald,
-          onChanged: onChanged,
-        ),
-      ],
+          ),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
     );
   }
+}
 
-  Widget _timeTile({
-    required String label,
-    required String time,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.lightBorder),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.lightTextSecondary)),
-            const SizedBox(height: 6),
-            Text(time, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-          ],
-        ),
+class _Row extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _Row({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(label, style: const TextStyle(color: AppTheme.lightTextSecondary, fontSize: 14)),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: AppTheme.lightTextPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }

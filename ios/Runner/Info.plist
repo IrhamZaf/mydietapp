@@ -30,6 +30,10 @@
 	<string>MyDiet needs camera access to photograph your meals for AI calorie scanning.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>MyDiet needs photo library access so you can choose meal photos for AI scanning.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>MyDiet reads your weight, steps, and activity from Apple Health to personalize calorie targets and progress.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>MyDiet writes meals and weight you log into Apple Health so all your health apps stay in sync.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

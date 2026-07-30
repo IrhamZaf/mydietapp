@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:my_diet_app/core/config/theme.dart';
 import 'package:my_diet_app/features/ai_scanner/presentation/controllers/ai_scanner_controller.dart';
 import 'package:my_diet_app/features/dashboard/presentation/controllers/dashboard_controller.dart';
+import 'package:my_diet_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 class AiScannerScreen extends ConsumerStatefulWidget {
   const AiScannerScreen({super.key});
@@ -444,6 +445,7 @@ class _AiScannerScreenState extends ConsumerState<AiScannerScreen> {
                     final success = await controller.saveMeal();
                     if (success && context.mounted) {
                       ref.invalidate(dashboardControllerProvider);
+                      ref.invalidate(mealsForDateProvider);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('${state.scannedResult!.foodName} logged successfully! 🎉'),

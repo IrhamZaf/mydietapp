@@ -5,6 +5,7 @@ import 'package:my_diet_app/core/config/theme.dart';
 import 'package:my_diet_app/core/network/api_exception.dart';
 import 'package:my_diet_app/features/ai_scanner/presentation/controllers/ai_scanner_controller.dart';
 import 'package:my_diet_app/features/dashboard/presentation/controllers/dashboard_controller.dart';
+import 'package:my_diet_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 class ManualMealScreen extends ConsumerStatefulWidget {
   const ManualMealScreen({super.key});
@@ -50,6 +51,7 @@ class _ManualMealScreenState extends ConsumerState<ManualMealScreen> {
             fat: int.tryParse(_fatCtrl.text.trim()) ?? 0,
           );
       ref.invalidate(dashboardControllerProvider);
+      ref.invalidate(mealsForDateProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
